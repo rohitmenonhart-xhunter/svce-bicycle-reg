@@ -139,12 +139,12 @@ async function issueBicycle() {
 }
 
 function displaySuccessMessage(message) {
-    const userName = localStorage.getItem('userEmail').split('@')[0];
-    const registerNumber = localStorage.getItem('registerNumber');
+    const userEmail = localStorage.getItem('userEmail');
     const userDisplayName = localStorage.getItem('userDisplayName');
+    const registerNumber = localStorage.getItem('registerNumber');
     const currentTime = new Date().toLocaleString();
 
-    document.getElementById('popup-user-name').textContent = userName;
+    document.getElementById('popup-user-name').textContent = userEmail.split('@')[0];
     document.getElementById('popup-user-register-number').textContent = registerNumber;
     document.getElementById('popup-message').textContent = message;
     document.getElementById('popup-time').textContent = currentTime;
@@ -153,23 +153,28 @@ function displaySuccessMessage(message) {
 
     // Play audio message
     const audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
-    playAudioMessage(audioMessage);
+    playAudioMessage(audioMessage, 2); // Repeat twice
 }
 
-function playAudioMessage(message) {
-    // Ensure the speech synthesis API is available
+function playAudioMessage(message, repeatCount) {
     if ('speechSynthesis' in window) {
         const synth = window.speechSynthesis;
         const utterance = new SpeechSynthesisUtterance(message);
-        utterance.lang = 'en-US'; // Set language, if needed
+        utterance.lang = 'en-US';
 
-        // Check if the device requires user interaction for audio
-        const playAudio = () => {
-            synth.speak(utterance);
-            document.removeEventListener('click', playAudio); // Remove the event listener after the first click
+        let repeat = 0;
+        utterance.onend = () => {
+            repeat += 1;
+            if (repeat < repeatCount) {
+                synth.speak(utterance);
+            }
         };
 
-        // Attach the event listener for user interaction
+        const playAudio = () => {
+            synth.speak(utterance);
+            document.removeEventListener('click', playAudio);
+        };
+
         if (synth.speaking) {
             document.addEventListener('click', playAudio);
         } else {
