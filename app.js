@@ -260,7 +260,7 @@ function displaySuccessMessage(message, status) {
     stopAudioButton.style.display = 'block';
 
     // Play audio message
-    const audioMessage = `${message} successfully . username is ${userDisplayName}. event occured at ${currentTime}`;
+    const audioMessage = `${message}successfully username is${userDisplayName}event occured at${currentTime}`;
     playAudioMessage(audioMessage, 1); // Play once
 }
 
