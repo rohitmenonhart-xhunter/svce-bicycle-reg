@@ -85,44 +85,55 @@ function saveUserInfoToFirebase(registerNumber) {
     });
 }
 
+let lastScanTime = null;
+
 qrScanButton.addEventListener('click', async () => {
-    const html5QrCode = new Html5Qrcode('qr-camera');
+    const currentTime = new Date().getTime();
+    if (lastScanTime && (currentTime - lastScanTime < 40000)) {
+        // User has returned the bicycle within 40 seconds
+        await returnBicycle();
+        displaySuccessMessage("Bicycle Returned");
+        lastScanTime = null; // Reset last scan time
+    } else {
+        const html5QrCode = new Html5Qrcode('qr-camera');
+        try {
+            await html5QrCode.start(
+                { facingMode: 'environment' }, // Use rear camera by default
+                {
+                    fps: 10,    // Optional. Default is 10.
+                    qrbox: 250  // Optional. Default is 250px.
+                },
+                async qrCodeMessage => {
+                    console.log('QR Code detected:', qrCodeMessage.trim());
+                    lastScanTime = new Date().getTime(); // Update last scan time
 
-    try {
-        await html5QrCode.start(
-            { facingMode: 'environment' }, // Use rear camera by default
-            {
-                fps: 10,    // Optional. Default is 10.
-                qrbox: 250  // Optional. Default is 250px.
-            },
-            async qrCodeMessage => {
-                console.log('QR Code detected:', qrCodeMessage.trim());
+                    // Check if QR code message is "bicycle2"
+                    if (qrCodeMessage.trim() === "bicycle2") {
+                        console.log('Bicycle detected');
+                        // Trigger the function for issuing bicycle
+                        await issueBicycle();
+                        // Display success message
+                        displaySuccessMessage("Bicycle Issued");
+                    } else {
+                        console.log('Not bicycle2');
+                    }
 
-                // Check if QR code message is "bicycle2"
-                if (qrCodeMessage.trim() === "bicycle2") {
-                    console.log('Bicycle detected');
-                    // Trigger the function for issuing bicycle
-                    await issueBicycle();
-                    // Display success message
-                    displaySuccessMessage("Bicycle Issued");
-                } else {
-                    console.log('Not bicycle2');
+                    // Stop scanning after detecting the QR code
+                    html5QrCode.stop();
+                },
+                errorMessage => {
+                    // Callback when error occurs
+                    console.error(errorMessage);
+                    qrResultDiv.innerHTML = `<p>Error: ${errorMessage}</p>`;
                 }
-
-                // Stop scanning after detecting the QR code
-                html5QrCode.stop();
-            },
-            errorMessage => {
-                // Callback when error occurs
-                console.error(errorMessage);
-                qrResultDiv.innerHTML = `<p>Error: ${errorMessage}</p>`;
-            }
-        );
-    } catch (err) {
-        console.error('Failed to start QR code scanner:', err);
-        qrResultDiv.innerHTML = `<p>Error: ${err.message}</p>`;
+            );
+        } catch (err) {
+            console.error('Failed to start QR code scanner:', err);
+            qrResultDiv.innerHTML = `<p>Error: ${err.message}</p>`;
+        }
     }
 });
+
 
 async function issueBicycle() {
     console.log('Issuing bicycle');
@@ -133,8 +144,11 @@ async function issueBicycle() {
     const userDisplayName = localStorage.getItem('userDisplayName');
     const issueTime = new Date().toLocaleString();
 
+    // Generate a random 5-digit number
+    const randomKey = Math.floor(10000 + Math.random() * 90000);
+
     // Push user details and bicycle issued info as a new entry under 'rides'
-    await database.ref('rides/' + userName).push({
+    await database.ref('rides/' + userName + '/' + randomKey).set({
         displayName: userDisplayName,
         email: userEmail,
         registerNumber: registerNumber,
@@ -142,6 +156,7 @@ async function issueBicycle() {
         issueTime: issueTime // Issue time
     });
 }
+
 
 
 function displaySuccessMessage(message) {
