@@ -8,6 +8,9 @@ const registerNumberPage = document.getElementById('register-number-page');
 const dashboard = document.getElementById('dashboard');
 const userNameSpan = document.getElementById('user-name');
 const userRegisterNumberSpan = document.getElementById('user-register-number');
+const userDisplayNameSpan = document.getElementById('user-displayName'); // Changed variable name
+
+const errorMessage = document.getElementById('error-message');
 
 googleSigninButton.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -25,6 +28,7 @@ googleSigninButton.addEventListener('click', () => {
             }
         })
         .catch(error => {
+            errorMessage.textContent = error.message;
             console.error(error);
         });
 });
@@ -44,10 +48,23 @@ function displayDashboard() {
 
     userNameSpan.textContent = userName;
     userRegisterNumberSpan.textContent = registerNumber;
+    userDisplayNameSpan.textContent = userDisplayName; // Update to userDisplayNameSpan
 
     landingPage.style.display = 'none';
     registerNumberPage.style.display = 'none';
     dashboard.style.display = 'block';
+
+    // Initialize Leaflet map
+    const map = L.map('map').setView([12.986123, 79.972028], 17); // Centered on Chennai, adjust as needed
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Add a marker at the center
+    // L.marker([13.0827, 80.2707]).addTo(map)
+    //     .bindPopup('SVCE Campus')
+    //     .openPopup();
 }
 
 function saveUserInfoToFirebase(registerNumber) {
