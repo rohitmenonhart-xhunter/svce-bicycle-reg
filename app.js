@@ -143,7 +143,7 @@ function displaySuccessMessage(message) {
     const registerNumber = localStorage.getItem('registerNumber');
     const currentTime = new Date().toLocaleString();
 
-    document.getElementById('popup-user-name').textContent = userName;
+    document.getElementById('popup-user-name').textContent = userDisplayName;
     document.getElementById('popup-user-register-number').textContent = registerNumber;
     document.getElementById('popup-message').textContent = message;
     document.getElementById('popup-time').textContent = currentTime;
