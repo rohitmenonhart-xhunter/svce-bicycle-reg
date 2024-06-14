@@ -124,22 +124,26 @@ qrScanButton.addEventListener('click', async () => {
             },
             async qrCodeMessage => {
                 // Callback when QR code is detected
-                qrResultDiv.innerHTML = `<p>QR Code detected: ${qrCodeMessage}</p>`;
+                console.log('QR Code detected:', qrCodeMessage);
                 
                 // Check if QR code message is "bicycle2"
                 if (qrCodeMessage.trim() === "bicycle2") {
+                    console.log('Bicycle detected, startTime:', startTime);
                     if (!startTime) {
                         // First scan - issue bicycle
                         startTime = new Date().toISOString();
+                        console.log('Issue bicycle');
                         await issueBicycle();
                     } else {
                         // Second scan - return bicycle
                         endTime = new Date().toISOString();
+                        console.log('Return bicycle');
                         await returnBicycle();
                     }
                 } else {
                     // Reset start time if QR code is not "bicycle2"
                     startTime = null;
+                    console.log('Not bicycle2');
                 }
                 
                 // Stop scanning after detecting the QR code
@@ -158,6 +162,7 @@ qrScanButton.addEventListener('click', async () => {
 });
 
 async function issueBicycle() {
+    console.log('Issuing bicycle');
     // Get user details from local storage
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
@@ -178,6 +183,7 @@ async function issueBicycle() {
 }
 
 async function returnBicycle() {
+    console.log('Returning bicycle');
     // Get user details from local storage
     const userEmail = localStorage.getItem('userEmail');
     const userName = userEmail.split('@')[0];
@@ -191,6 +197,7 @@ async function returnBicycle() {
     // Display success message for bicycle returned
     displaySuccessMessage('', '', endTime, 'Bicycle Returned', true); // Empty details for return
 }
+
 
 function displaySuccessMessage(name, regNumber, time, msg, isReturn = false) {
     const successCanvas = document.getElementById('success-canvas');
@@ -215,6 +222,7 @@ function closeSuccessMessage() {
     const successCanvas = document.getElementById('success-canvas');
     successCanvas.style.display = 'none';
 }
+
 
 
 window.onload = () => {
