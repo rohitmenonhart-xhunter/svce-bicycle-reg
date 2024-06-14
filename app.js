@@ -98,33 +98,13 @@ qrScanButton.addEventListener('click', async () => {
             async qrCodeMessage => {
                 console.log('QR Code detected:', qrCodeMessage.trim());
 
-                // Get user details from local storage
-                const userEmail = localStorage.getItem('userEmail');
-                const userName = userEmail.split('@')[0];
-
                 // Check if QR code message is "bicycle2"
                 if (qrCodeMessage.trim() === "bicycle2") {
                     console.log('Bicycle detected');
-                    const rideRef = database.ref('rides/' + userName);
-                    const rideSnapshot = await rideRef.once('value');
-                    const rideData = rideSnapshot.val();
-
-                    if (rideData) {
-                        // User has previously issued a bicycle
-                        if (rideData.bicycleReturned) {
-                            // Bicycle already returned, show a message
-                            console.log('Bicycle already returned');
-                            displayPopup("Bicycle Already Returned");
-                        } else {
-                            // User returning the bicycle
-                            await returnBicycle(userName);
-                            displayPopup("Bicycle Returned Successfully");
-                        }
-                    } else {
-                        // User issuing the bicycle for the first time
-                        await issueBicycle(userName);
-                        displayPopup("Bicycle Issued");
-                    }
+                    // Trigger the function for issuing bicycle
+                    await issueBicycle();
+                    // Display success message
+                    displaySuccessMessage("Bicycle Issued");
                 } else {
                     console.log('Not bicycle2');
                 }
@@ -144,11 +124,12 @@ qrScanButton.addEventListener('click', async () => {
     }
 });
 
-async function issueBicycle(userName) {
+async function issueBicycle() {
     console.log('Issuing bicycle');
     // Get user details from local storage
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
+    const userName = userEmail.split('@')[0];
     const userDisplayName = localStorage.getItem('userDisplayName');
     const issueTime = new Date().toLocaleString();
 
@@ -158,36 +139,28 @@ async function issueBicycle(userName) {
         email: userEmail,
         registerNumber: registerNumber,
         bicycle: 'bicycle2', // Assuming bicycle2 is issued
-        issueTime: issueTime, // Issue time
-        bicycleReturned: false // Initially set to false
+        issueTime: issueTime // Issue time
     });
 }
 
-async function returnBicycle(userName) {
-    console.log('Returning bicycle');
-    const returnTime = new Date().toLocaleString();
-
-    // Update RTDB to mark bicycle as returned
-    await database.ref('rides/' + userName).update({
-        bicycleReturned: true, // Set to true
-        returnTime: returnTime // Return time
-    });
-}
-
-function displayPopup(message) {
+function displaySuccessMessage(message) {
     const userEmail = localStorage.getItem('userEmail');
     const userDisplayName = localStorage.getItem('userDisplayName');
     const registerNumber = localStorage.getItem('registerNumber');
     const currentTime = new Date().toLocaleString();
 
-    document.getElementById('popup-user-name').textContent = userDisplayName;
+    document.getElementById('popup-user-name').textContent = userEmail.split('@')[0];
     document.getElementById('popup-user-register-number').textContent = registerNumber;
     document.getElementById('popup-message').textContent = message;
     document.getElementById('popup-time').textContent = currentTime;
 
     successPopup.style.display = 'block';
-}
+    stopAudioButton.style.display = 'block';
 
+    // Play audio message
+    const audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
+    playAudioMessage(audioMessage, 2); // Repeat twice
+}
 
 function playAudioMessage(message, repeatCount) {
     if ('speechSynthesis' in window) {
