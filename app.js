@@ -85,29 +85,42 @@ function saveUserInfoToFirebase(registerNumber) {
     });
 }
 
-let lastScanTime = null;
-let issuedBicycleKey = null; // Store the key of the issued bicycle
-
 qrScanButton.addEventListener('click', async () => {
-    const currentTime = new Date().getTime();
-    const returnThreshold = 40000; // 40 seconds
-    if (lastScanTime && (currentTime - lastScanTime < returnThreshold)) {
-        // User scans within 40 seconds, issue bicycle
-        const issuedWithinThreshold = await issueBicycle();
-        if (issuedWithinThreshold) {
-            displaySuccessMessage("Bicycle Issued");
-        } else {
-            console.log('Failed to issue bicycle.');
-        }
-    } else {
-        // User scans after 40 seconds, return bicycle
-        if (issuedBicycleKey) {
-            await returnBicycle();
-            displaySuccessMessage("Bicycle Returned");
-            issuedBicycleKey = null; // Reset issued bicycle key
-        } else {
-            console.log('No bicycle issued to return.');
-        }
+    const html5QrCode = new Html5Qrcode('qr-camera');
+
+    try {
+        await html5QrCode.start(
+            { facingMode: 'environment' }, // Use rear camera by default
+            {
+                fps: 10,    // Optional. Default is 10.
+                qrbox: 250  // Optional. Default is 250px.
+            },
+            async qrCodeMessage => {
+                console.log('QR Code detected:', qrCodeMessage.trim());
+
+                // Check if QR code message is "bicycle2"
+                if (qrCodeMessage.trim() === "bicycle2") {
+                    console.log('Bicycle detected');
+                    // Trigger the function for issuing bicycle
+                    await issueBicycle();
+                    // Display success message
+                    displaySuccessMessage("Bicycle Issued");
+                } else {
+                    console.log('Not bicycle2');
+                }
+
+                // Stop scanning after detecting the QR code
+                html5QrCode.stop();
+            },
+            errorMessage => {
+                // Callback when error occurs
+                console.error(errorMessage);
+                qrResultDiv.innerHTML = `<p>Error: ${errorMessage}</p>`;
+            }
+        );
+    } catch (err) {
+        console.error('Failed to start QR code scanner:', err);
+        qrResultDiv.innerHTML = `<p>Error: ${err.message}</p>`;
     }
 });
 
@@ -120,11 +133,11 @@ async function issueBicycle() {
     const userDisplayName = localStorage.getItem('userDisplayName');
     const issueTime = new Date().toLocaleString();
 
-    // Generate a random 5-digit number
-    const randomKey = Math.floor(10000 + Math.random() * 90000);
+    // Generate a unique key for the new entry
+    const newBicycleRef = database.ref('rides/' + userName).push();
 
-    // Push user details and bicycle issued info as a new entry under 'rides'
-    await database.ref('rides/' + userName + '/' + randomKey).set({
+    // Set user details and bicycle issued info as a new entry under 'rides'
+    await newBicycleRef.set({
         displayName: userDisplayName,
         email: userEmail,
         registerNumber: registerNumber,
@@ -132,24 +145,8 @@ async function issueBicycle() {
         issueTime: issueTime // Issue time
     });
 
-    issuedBicycleKey = randomKey; // Update issued bicycle key
-    lastScanTime = new Date().getTime(); // Update last scan time
-
     return true;
 }
-
-async function returnBicycle() {
-    console.log('Returning bicycle');
-    // Get user details from local storage
-    const userEmail = localStorage.getItem('userEmail');
-    const userName = userEmail.split('@')[0];
-
-    // Update the returned time for the issued bicycle
-    await database.ref('rides/' + userName + '/' + issuedBicycleKey).update({
-        returnTime: new Date().toLocaleString()
-    });
-}
-
 
 
 
