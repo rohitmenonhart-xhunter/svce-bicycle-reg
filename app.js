@@ -24,6 +24,16 @@ let synth;
 let utterance;
 let repeat = 0;
 let scannedQrCode = "";
+let map;
+let userMarker;
+let route;
+let markers = [];
+const customMarkers = [
+    { lat: 13.111996 , lng: 80.106127, title: 'Marker 1', icon: 'stands.png' },
+    { lat: 13.108688, lng: 80.097302, title: 'Marker 2', icon: 'stands.png' },
+    { lat: 12.987, lng: 79.973, title: 'Marker 3', icon: 'stands.png' },
+    { lat: 12.984, lng: 79.974, title: 'Marker 4', icon: 'stands.png' }
+];
 
 googleSigninButton.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -68,11 +78,71 @@ function displayDashboard() {
     dashboard.style.display = 'block';
 
     // Initialize Leaflet map
-    const map = L.map('map').setView([12.986123, 79.972028], 17);
+    map = L.map('map').setView([12.986123, 79.972028], 17);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+
+    // Add custom markers to the map
+    customMarkers.forEach(marker => {
+        const customIcon = L.icon({
+            iconUrl: marker.icon,
+            iconSize: [38, 38],
+            iconAnchor: [19, 38],
+            popupAnchor: [0, -38]
+        });
+
+        const customMarker = L.marker([marker.lat, marker.lng], { icon: customIcon })
+            .addTo(map)
+            .bindPopup(marker.title);
+        markers.push(customMarker);
+    });
+
+    // Get user's live location
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(position => {
+            const { latitude, longitude } = position.coords;
+            const userLatLng = L.latLng(latitude, longitude);
+
+            if (!userMarker) {
+                userMarker = L.marker(userLatLng, { icon: L.icon({
+                    iconUrl: 'icon.png', // Provide a path to your custom icon if needed
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                })}).addTo(map).bindPopup('You are here');
+            } else {
+                userMarker.setLatLng(userLatLng);
+            }
+
+            map.setView(userLatLng);
+
+            // Find the nearest custom marker
+            let nearestMarker = markers[0];
+            let minDistance = userLatLng.distanceTo(nearestMarker.getLatLng());
+
+            markers.forEach(marker => {
+                const distance = userLatLng.distanceTo(marker.getLatLng());
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestMarker = marker;
+                }
+            });
+
+            // Draw route to the nearest marker
+            if (route) {
+                map.removeControl(route);
+            }
+            route = L.Routing.control({
+                waypoints: [userLatLng, nearestMarker.getLatLng()],
+                createMarker: () => null
+            }).addTo(map);
+        }, error => {
+            console.error(error);
+        });
+    } else {
+        console.error('Geolocation is not supported by this browser.');
+    }
 }
 
 function saveUserInfoToFirebase(registerNumber) {
@@ -91,7 +161,7 @@ qrScanButton.addEventListener('click', async () => {
     // Show the "Get the Pass" button
     getPassButton.style.display = 'block';
 
-    const html5QrCode = new Html5Qrcode('qr-camera');
+    const html5QrCode = new Html5QrCode('qr-camera');
 
     try {
         await html5QrCode.start(
@@ -131,6 +201,17 @@ getPassButton.addEventListener('click', async () => {
         const currentTime = new Date().toLocaleString();
         const status = isReturning ? "returned" : "issued";
 
+        // Get user's current location
+        let userLatLng;
+        if (userMarker) {
+            userLatLng = userMarker.getLatLng();
+        } else {
+            console.error('User location not available.');
+            return;
+        }
+
+        const locationUrl = `https://google.com/maps?q=${userLatLng.lat},${userLatLng.lng}`;
+
         // Push user details and pass info as a new entry under 'passes'
         await database.ref('passes/' + userName).push({
             displayName: userDisplayName,
@@ -138,7 +219,8 @@ getPassButton.addEventListener('click', async () => {
             registerNumber: registerNumber,
             bicycle: `bicycle${bicycleNumber}`,
             time: currentTime, // Time of getting the pass
-            status: status // Issue or return status
+            status: status, // Issue or return status
+            location: locationUrl // User's current location
         });
 
         // Display success message
