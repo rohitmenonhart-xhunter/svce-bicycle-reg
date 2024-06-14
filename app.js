@@ -101,10 +101,8 @@ qrScanButton.addEventListener('click', async () => {
                 // Check if QR code message is "bicycle2"
                 if (qrCodeMessage.trim() === "bicycle2") {
                     console.log('Bicycle detected');
-                    // Trigger the function for issuing bicycle
+                    // Trigger the function for issuing/returning bicycle
                     await issueBicycle();
-                    // Display success message
-                    displaySuccessMessage("Bicycle Issued");
                 } else {
                     console.log('Not bicycle2');
                 }
@@ -125,21 +123,51 @@ qrScanButton.addEventListener('click', async () => {
 });
 
 async function issueBicycle() {
-    console.log('Issuing bicycle');
-    // Get user details from local storage
+    const userEmail = localStorage.getItem('userEmail');
+    const userName = userEmail.split('@')[0];
+
+    // Check if the user has already issued a bicycle
+    const rideData = await database.ref('rides/' + userName).once('value');
+    const rideValue = rideData.val();
+
+    if (rideValue && rideValue.bicycle) {
+        // User has already issued a bicycle
+        console.log('Returning bicycle');
+        await returnBicycle();
+        displaySuccessMessage("Bicycle Returned");
+    } else {
+        // User hasn't issued a bicycle yet
+        console.log('Issuing bicycle');
+        // Get user details from local storage
+        const registerNumber = localStorage.getItem('registerNumber');
+        const userDisplayName = localStorage.getItem('userDisplayName');
+        const issueTime = new Date().toLocaleString();
+
+        // Update RTDB with user details and bicycle issued info
+        await database.ref('rides/' + userName).set({
+            displayName: userDisplayName,
+            email: userEmail,
+            registerNumber: registerNumber,
+            bicycle: 'bicycle2', // Assuming bicycle2 is issued
+            issueTime: issueTime // Issue time
+        });
+
+        displaySuccessMessage("Bicycle Issued");
+    }
+}
+
+async function returnBicycle() {
+    console.log('Returning bicycle');
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
     const userName = userEmail.split('@')[0];
     const userDisplayName = localStorage.getItem('userDisplayName');
-    const issueTime = new Date().toLocaleString();
+    const returnTime = new Date().toLocaleString();
 
-    // Update RTDB with user details and bicycle issued info
-    await database.ref('rides/' + userName).set({
-        displayName: userDisplayName,
-        email: userEmail,
-        registerNumber: registerNumber,
-        bicycle: 'bicycle2', // Assuming bicycle2 is issued
-        issueTime: issueTime // Issue time
+    // Update RTDB with user details and bicycle returned info
+    await database.ref('rides/' + userName).update({
+        bicycle: null, // Set bicycle to null to indicate return
+        returnTime: returnTime // Return time
     });
 }
 
@@ -157,8 +185,12 @@ function displaySuccessMessage(message) {
     successPopup.style.display = 'block';
     stopAudioButton.style.display = 'block';
 
-    // Play audio message
-    const audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
+    let audioMessage;
+    if (message === "Bicycle Issued") {
+        audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
+    } else if (message === "Bicycle Returned") {
+        audioMessage = `Bicycle returned by ${userDisplayName} on ${currentTime}`;
+    }
     playAudioMessage(audioMessage, 2); // Repeat twice
 }
 
