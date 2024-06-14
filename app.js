@@ -142,17 +142,17 @@ getPassButton.addEventListener('click', async () => {
         });
 
         // Display success message
-        displaySuccessMessage(`Bicycle ${bicycleNumber} ${status.charAt(0).toUpperCase() + status.slice(1)}`);
+        displaySuccessMessage(`Bicycle ${bicycleNumber} ${status.charAt(0).toUpperCase() + status.slice(1)}`, status);
 
         // Hide the "Get the Pass" button
         getPassButton.style.display = 'none';
         scannedQrCode = ""; // Reset scanned QR code
     } else {
-        displaySuccessMessage("Invalid QR Code");
+        displaySuccessMessage("Invalid QR Code", "error");
     }
 });
 
-function displaySuccessMessage(message) {
+function displaySuccessMessage(message, status) {
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
     const currentTime = new Date().toLocaleString();
@@ -161,6 +161,15 @@ function displaySuccessMessage(message) {
     document.getElementById('popup-user-register-number').textContent = registerNumber;
     document.getElementById('popup-message').textContent = message;
     document.getElementById('popup-time').textContent = currentTime;
+
+    // Set background color based on status
+    if (status === "issued") {
+        successPopup.style.backgroundColor = 'red';
+    } else if (status === "returned") {
+        successPopup.style.backgroundColor = 'green';
+    } else {
+        successPopup.style.backgroundColor = 'gray'; // Default color for errors or other messages
+    }
 
     successPopup.style.display = 'block';
     stopAudioButton.style.display = 'block';
