@@ -102,15 +102,28 @@ qrScanButton.addEventListener('click', async () => {
             async qrCodeMessage => {
                 console.log('QR Code detected:', qrCodeMessage.trim());
 
-                // Check if QR code message is "bicycle2"
+                // Get user details
+                const userEmail = localStorage.getItem('userEmail');
+                const registerNumber = localStorage.getItem('registerNumber');
+                const userName = userEmail.split('@')[0];
+                const userDisplayName = localStorage.getItem('userDisplayName');
+                const currentTime = new Date().toLocaleString();
+
+                // Check QR code message
                 if (qrCodeMessage.trim() === "bicycle2") {
                     console.log('Bicycle detected');
                     // Trigger the function for issuing bicycle
-                    await issueBicycle();
+                    await issueBicycle(userName, userDisplayName, userEmail, registerNumber, currentTime);
                     // Display success message
                     displaySuccessMessage("Bicycle Issued");
+                } else if (qrCodeMessage.trim() === "bicycle2out") {
+                    console.log('Bicycle returned');
+                    // Trigger the function for returning bicycle
+                    await returnBicycle(userName, userDisplayName, userEmail, registerNumber, currentTime);
+                    // Display success message
+                    displaySuccessMessage("Bicycle Returned");
                 } else {
-                    console.log('Not bicycle2');
+                    console.log('Invalid QR code');
                 }
 
                 // Stop scanning after detecting the QR code
@@ -151,6 +164,34 @@ document.getElementById('get-pass-button').addEventListener('click', async () =>
     document.getElementById('get-pass-button').style.display = 'none';
 });
 
+// Function to issue bicycle
+async function issueBicycle(userName, userDisplayName, userEmail, registerNumber, currentTime) {
+    console.log('Issuing bicycle');
+
+    // Push user details and bicycle issued info as a new entry under 'rides'
+    await database.ref('rides/' + userName).push({
+        displayName: userDisplayName,
+        email: userEmail,
+        registerNumber: registerNumber,
+        bicycle: 'bicycle2', // Assuming bicycle2 is issued
+        issueTime: currentTime // Issue time
+    });
+}
+
+// Function to return bicycle
+async function returnBicycle(userName, userDisplayName, userEmail, registerNumber, currentTime) {
+    console.log('Returning bicycle');
+
+    // Push user details and bicycle returned info as a new entry under 'rides'
+    await database.ref('rides/' + userName).push({
+        displayName: userDisplayName,
+        email: userEmail,
+        registerNumber: registerNumber,
+        bicycle: 'bicycle2out', // Indicate that bicycle is returned
+        returnTime: currentTime // Return time
+    });
+}
+
 // Modify displaySuccessMessage function to handle different messages
 function displaySuccessMessage(message) {
     const userEmail = localStorage.getItem('userEmail');
@@ -169,6 +210,7 @@ function displaySuccessMessage(message) {
     const audioMessage = `${message} at ${currentTime}`;
     playAudioMessage(audioMessage, 1); // Play once
 }
+
 
 function playAudioMessage(message, repeatCount) {
     if ('speechSynthesis' in window) {
