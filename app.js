@@ -141,6 +141,7 @@ async function issueBicycle() {
 function displaySuccessMessage(message) {
     const userName = localStorage.getItem('userEmail').split('@')[0];
     const registerNumber = localStorage.getItem('registerNumber');
+    const userDisplayName = localStorage.getItem('userDisplayName');
     const currentTime = new Date().toLocaleString();
 
     document.getElementById('popup-user-name').textContent = userName;
@@ -151,14 +152,32 @@ function displaySuccessMessage(message) {
     successPopup.style.display = 'block';
 
     // Play audio message
-    const audioMessage = `Bicycle issued to ${registerNumber} on ${currentTime}`;
+    const audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
     playAudioMessage(audioMessage);
 }
 
 function playAudioMessage(message) {
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(message);
-    synth.speak(utterance);
+    // Ensure the speech synthesis API is available
+    if ('speechSynthesis' in window) {
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.lang = 'en-US'; // Set language, if needed
+
+        // Check if the device requires user interaction for audio
+        const playAudio = () => {
+            synth.speak(utterance);
+            document.removeEventListener('click', playAudio); // Remove the event listener after the first click
+        };
+
+        // Attach the event listener for user interaction
+        if (synth.speaking) {
+            document.addEventListener('click', playAudio);
+        } else {
+            synth.speak(utterance);
+        }
+    } else {
+        console.error('Speech Synthesis API is not supported in this browser.');
+    }
 }
 
 closePopup.addEventListener('click', () => {
