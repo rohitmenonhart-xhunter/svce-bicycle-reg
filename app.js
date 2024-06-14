@@ -133,8 +133,8 @@ async function issueBicycle() {
     const userDisplayName = localStorage.getItem('userDisplayName');
     const issueTime = new Date().toLocaleString();
 
-    // Update RTDB with user details and bicycle issued info
-    await database.ref('rides/' + userName).set({
+    // Push user details and bicycle issued info as a new entry under 'rides'
+    await database.ref('rides/' + userName).push({
         displayName: userDisplayName,
         email: userEmail,
         registerNumber: registerNumber,
@@ -142,6 +142,7 @@ async function issueBicycle() {
         issueTime: issueTime // Issue time
     });
 }
+
 
 function displaySuccessMessage(message) {
     const userEmail = localStorage.getItem('userEmail');
