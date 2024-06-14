@@ -29,12 +29,11 @@ let userMarker;
 let route;
 let markers = [];
 const customMarkers = [
-    { lat: 12.986, lng: 79.971, title: 'Marker 1' },
-    { lat: 12.985, lng: 79.972, title: 'Marker 2' },
-    { lat: 12.987, lng: 79.973, title: 'Marker 3' },
-    { lat: 12.984, lng: 79.974, title: 'Marker 4' }
+    { lat:12.984534, lng: 79.973497, title: 'Marker 1', icon: 'stands.png' },
+    { lat:12.987377, lng: 79.970702, title: 'Marker 2', icon: 'stands.png' },
+    { lat:12.988415, lng: 79.970793, title: 'Marker 3', icon: 'stands.png' },
+    { lat:12.988805, lng: 79.974440, title: 'Marker 4', icon: 'stands.png' }
 ];
-
 googleSigninButton.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ hd: 'svce.ac.in' });
@@ -83,10 +82,17 @@ function displayDashboard() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-
     // Add custom markers to the map
     customMarkers.forEach(marker => {
-        const customMarker = L.marker([marker.lat, marker.lng])
+        const customIcon = L.icon({
+        iconUrl: marker.icon,
+        iconSize: [38, 38],
+        iconAnchor: [19, 38],
+        popupAnchor: [0, -38]
+    });
+    
+    
+        const customMarker = L.marker([marker.lat, marker.lng], { icon: customIcon })
             .addTo(map)
             .bindPopup(marker.title);
         markers.push(customMarker);
@@ -128,7 +134,11 @@ function displayDashboard() {
             }
             route = L.Routing.control({
                 waypoints: [userLatLng, nearestMarker.getLatLng()],
-                createMarker: () => null
+            createMarker: () => null,
+            routeWhileDragging: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            show: false, // Suppresses the routing panel display
             }).addTo(map);
         }, error => {
             console.error(error);

@@ -1,16 +1,151 @@
-/* Add this CSS to your style.css file */
+/* General Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
 
+.container {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    padding: 20px;
+    margin: 20px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+/* Landing Page */
+#landing-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#landing-page h1 {
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+#google-signin {
+    background: #4285F4;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+#google-signin:hover {
+    background: #357ae8;
+}
+
+/* Register Number Page */
+#register-number-page h2 {
+    color: #ffffff;
+}
+
+#register-number {
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    width: calc(100% - 24px);
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+#submit-register-number {
+    background: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+#submit-register-number:hover {
+    background: #45a049;
+}
+
+/* Dashboard */
+#dashboard h2 {
+    color: #ffffff;
+}
+
+#dashboard p {
+    margin: 10px 0;
+}
+
+#map {
+    height: 300px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+#qr-scan-btn {
+    background: #f9a825;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+#qr-scan-btn:hover {
+    background: #f57f17;
+}
+
+#qr-camera, #qr-result {
+    margin-top: 20px;
+}
+
+#get-pass-button {
+    background: #1976d2;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    display: none; /* Initially hidden */
+}
+
+#get-pass-button:hover {
+    background: #1565c0;
+}
+
+/* Popup Styles */
 .popup {
     position: fixed;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 60%;
-    background-color: green;
-    color: white;
+    width: 90%;
+    max-width: 400px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
     border-radius: 10px;
     padding: 20px;
     text-align: center;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     z-index: 1000;
 }
 
@@ -24,21 +159,33 @@
     right: 10px;
     cursor: pointer;
     font-size: 20px;
+    color: #333;
+}
+
+.close-popup:hover {
+    color: #000;
 }
 
 .popup h3 {
     margin: 0;
     font-size: 24px;
+    color: #333;
 }
 
 .popup p {
     margin: 5px 0;
 }
 
+.tick-mark {
+    font-size: 50px;
+    margin: 20px 0;
+    color: #4CAF50;
+}
+
 #stop-audio-button {
     margin-top: 10px;
-    padding: 10px;
-    background-color: red;
+    padding: 10px 20px;
+    background-color: #f44336;
     color: white;
     border: none;
     border-radius: 5px;
@@ -46,35 +193,28 @@
     font-size: 16px;
 }
 
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 24px;
-    cursor: pointer;
+#stop-audio-button:hover {
+    background-color: #e53935;
 }
 
-.tick-mark {
-    font-size: 50px;
-    margin: 20px 0;
+/* Error Message */
+#error-message {
+    color: #f44336;
+    margin-top: 20px;
 }
 
-#map {
-    height: 400px;
-}
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+        margin: 10px;
+    }
 
-.qr-camera {
-    width: 100%;
-    height: 100%;
-}
+    #map {
+        height: 200px;
+    }
 
-#dashboard {
-    padding: 20px;
-}
-
-.container {
-    max-width: 600px;
-    margin: 0 auto;
-    text-align: center;
+    .popup {
+        width: 90%;
+    }
 }
