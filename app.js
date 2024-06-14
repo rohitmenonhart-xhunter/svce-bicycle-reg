@@ -149,6 +149,16 @@ function displaySuccessMessage(message) {
     document.getElementById('popup-time').textContent = currentTime;
 
     successPopup.style.display = 'block';
+
+    // Play audio message
+    const audioMessage = `Bicycle issued to ${registerNumber} on ${currentTime}`;
+    playAudioMessage(audioMessage);
+}
+
+function playAudioMessage(message) {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(message);
+    synth.speak(utterance);
 }
 
 closePopup.addEventListener('click', () => {
