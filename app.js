@@ -125,7 +125,7 @@ qrScanButton.addEventListener('click', async () => {
 });
 
 async function issueBicycle() {
-    console.log('Issuing/Returning bicycle');
+    console.log('Issuing bicycle');
     // Get user details from local storage
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
@@ -133,33 +133,36 @@ async function issueBicycle() {
     const userDisplayName = localStorage.getItem('userDisplayName');
     const issueTime = new Date().toLocaleString();
 
-    // Check the last entry to determine if it's even or odd
-    const lastEntrySnapshot = await database.ref('rides/' + userName).orderByKey().limitToLast(1).once('value');
-    let isEvenEntry = true; // Assume even entry if no previous entries exist
-    lastEntrySnapshot.forEach(() => {
-        isEvenEntry = !isEvenEntry; // Toggle for each entry
-    });
-
-    // Set bicycle status based on even or odd entry
-    const bicycleStatus = isEvenEntry ? 'Issued' : 'Returned';
-
-    // Push user details and bicycle status as a new entry under 'rides'
-    await database.ref('rides/' + userName).push({
-        displayName: userDisplayName,
-        email: userEmail,
-        registerNumber: registerNumber,
-        bicycle: 'bicycle2', // Assuming bicycle2 is issued
-        status: bicycleStatus, // 'Issued' or 'Returned'
-        time: issueTime // Time of issuing/returning
-    });
+    
 }
 
 
+// Add event listener for "Get the Pass" button
+document.getElementById('get-pass-button').addEventListener('click', async () => {
+    const userEmail = localStorage.getItem('userEmail');
+    const registerNumber = localStorage.getItem('registerNumber');
+    const userName = userEmail.split('@')[0];
+    const userDisplayName = localStorage.getItem('userDisplayName');
+    const currentTime = new Date().toLocaleString();
 
+    // Push user details and pass info as a new entry under 'passes'
+    await database.ref('passes/' + userName).push({
+        displayName: userDisplayName,
+        email: userEmail,
+        registerNumber: registerNumber,
+        time: currentTime // Time of getting the pass
+    });
 
+    // Display success message
+    displaySuccessMessage("Pass Received");
+
+    // Hide the "Get the Pass" button
+    document.getElementById('get-pass-button').style.display = 'none';
+});
+
+// Modify displaySuccessMessage function to handle different messages
 function displaySuccessMessage(message) {
     const userEmail = localStorage.getItem('userEmail');
-    const userDisplayName = localStorage.getItem('userDisplayName');
     const registerNumber = localStorage.getItem('registerNumber');
     const currentTime = new Date().toLocaleString();
 
@@ -172,10 +175,9 @@ function displaySuccessMessage(message) {
     stopAudioButton.style.display = 'block';
 
     // Play audio message
-    const audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
-    playAudioMessage(audioMessage, 2); // Repeat twice
+    const audioMessage = `${message} at ${currentTime}`;
+    playAudioMessage(audioMessage, 1); // Play once
 }
-
 function playAudioMessage(message, repeatCount) {
     if ('speechSynthesis' in window) {
         synth = window.speechSynthesis;
