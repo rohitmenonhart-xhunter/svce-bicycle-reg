@@ -29,10 +29,10 @@ let userMarker;
 let route;
 let markers = [];
 const customMarkers = [
-    { lat:12.984534, lng: 79.973497, title: 'Marker 1', icon: 'stands.png' },
-    { lat:12.987377, lng: 79.970702, title: 'Marker 2', icon: 'stands.png' },
-    { lat:12.988415, lng: 79.970793, title: 'Marker 3', icon: 'stands.png' },
-    { lat:12.988805, lng: 79.974440, title: 'Marker 4', icon: 'stands.png' }
+    { lat:12.984534, lng: 79.973497, title: 'Marker 1', icon: 'stand1.png' },
+    { lat:12.987377, lng: 79.970702, title: 'Marker 2', icon: 'stand2.png' },
+    { lat:12.988415, lng: 79.970793, title: 'Marker 3', icon: 'stand3.png' },
+    { lat:12.988805, lng: 79.974440, title: 'Marker 4', icon: 'stand4.png' }
 ];
 googleSigninButton.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -86,7 +86,7 @@ function displayDashboard() {
     customMarkers.forEach(marker => {
         const customIcon = L.icon({
         iconUrl: marker.icon,
-        iconSize: [38, 38],
+        iconSize: [69, 69],
         iconAnchor: [19, 38],
         popupAnchor: [0, -38]
     });
@@ -107,8 +107,8 @@ function displayDashboard() {
             if (!userMarker) {
                 userMarker = L.marker(userLatLng, { icon: L.icon({
                     iconUrl: 'icon.png', // Provide a path to your custom icon if needed
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41]
+                    iconSize: [79, 79],
+                    iconAnchor: [50, 55]
                 })}).addTo(map).bindPopup('You are here');
             } else {
                 userMarker.setLatLng(userLatLng);
@@ -183,12 +183,10 @@ qrScanButton.addEventListener('click', async () => {
             errorMessage => {
                 // Callback when error occurs
                 console.error(errorMessage);
-                qrResultDiv.innerHTML = `<p>Error: ${errorMessage}</p>`;
             }
         );
     } catch (err) {
         console.error('Failed to start QR code scanner:', err);
-        qrResultDiv.innerHTML = `<p>Error: ${err.message}</p>`;
     }
 });
 
