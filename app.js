@@ -85,7 +85,11 @@ function saveUserInfoToFirebase(registerNumber) {
     });
 }
 
+// Add event listener for QR scan button
 qrScanButton.addEventListener('click', async () => {
+    // Show the "Get the Pass" button
+    document.getElementById('get-pass-button').style.display = 'block';
+
     const html5QrCode = new Html5Qrcode('qr-camera');
 
     try {
@@ -104,7 +108,7 @@ qrScanButton.addEventListener('click', async () => {
                     // Trigger the function for issuing bicycle
                     await issueBicycle();
                     // Display success message
-                    // displaySuccessMessage("Bicycle Issued");
+                    displaySuccessMessage("Bicycle Issued");
                 } else {
                     console.log('Not bicycle2');
                 }
@@ -123,19 +127,6 @@ qrScanButton.addEventListener('click', async () => {
         qrResultDiv.innerHTML = `<p>Error: ${err.message}</p>`;
     }
 });
-
-async function issueBicycle() {
-    console.log('Issuing bicycle');
-    // Get user details from local storage
-    const userEmail = localStorage.getItem('userEmail');
-    const registerNumber = localStorage.getItem('registerNumber');
-    const userName = userEmail.split('@')[0];
-    const userDisplayName = localStorage.getItem('userDisplayName');
-    const issueTime = new Date().toLocaleString();
-
-    
-}
-
 
 // Add event listener for "Get the Pass" button
 document.getElementById('get-pass-button').addEventListener('click', async () => {
@@ -178,6 +169,7 @@ function displaySuccessMessage(message) {
     const audioMessage = `${message} at ${currentTime}`;
     playAudioMessage(audioMessage, 1); // Play once
 }
+
 function playAudioMessage(message, repeatCount) {
     if ('speechSynthesis' in window) {
         synth = window.speechSynthesis;
