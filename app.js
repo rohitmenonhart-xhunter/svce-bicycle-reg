@@ -258,7 +258,7 @@ function displaySuccessMessage(message, status) {
     stopAudioButton.style.display = 'block';
 
     // Play audio message
-    const audioMessage = `${message} at ${currentTime}`;
+    const audioMessage = `${message} to ${userDisplayName} at ${currentTime}`;
     playAudioMessage(audioMessage, 1); // Play once
 }
 
