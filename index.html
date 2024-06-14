@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycle Booking System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="landing-page">
+        <h1>Welcome to SVCE Cycle Booking</h1>
+        <button id="google-signin">Sign in with Google</button>
+    </div>
+
+    <div id="register-number-page" style="display: none;">
+        <h2>Enter Your Registration Number</h2>
+        <input type="text" id="register-number" placeholder="Registration Number">
+        <button id="submit-register-number">Submit</button>
+    </div>
+
+    <div id="dashboard" style="display: none;">
+        <h2>Welcome <span id="user-name"></span></h2>
+        <p>Registration Number: <span id="user-register-number"></span></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
