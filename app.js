@@ -125,7 +125,7 @@ qrScanButton.addEventListener('click', async () => {
 });
 
 async function issueBicycle() {
-    console.log('Issuing bicycle');
+    console.log('Issuing/Returning bicycle');
     // Get user details from local storage
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
@@ -133,20 +133,27 @@ async function issueBicycle() {
     const userDisplayName = localStorage.getItem('userDisplayName');
     const issueTime = new Date().toLocaleString();
 
-    // Generate a unique key for the new entry
-    const newBicycleRef = database.ref('rides/' + userName).push();
+    // Check the last entry to determine if it's even or odd
+    const lastEntrySnapshot = await database.ref('rides/' + userName).orderByKey().limitToLast(1).once('value');
+    let isEvenEntry = true; // Assume even entry if no previous entries exist
+    lastEntrySnapshot.forEach(() => {
+        isEvenEntry = !isEvenEntry; // Toggle for each entry
+    });
 
-    // Set user details and bicycle issued info as a new entry under 'rides'
-    await newBicycleRef.set({
+    // Set bicycle status based on even or odd entry
+    const bicycleStatus = isEvenEntry ? 'Issued' : 'Returned';
+
+    // Push user details and bicycle status as a new entry under 'rides'
+    await database.ref('rides/' + userName).push({
         displayName: userDisplayName,
         email: userEmail,
         registerNumber: registerNumber,
         bicycle: 'bicycle2', // Assuming bicycle2 is issued
-        issueTime: issueTime // Issue time
+        status: bicycleStatus, // 'Issued' or 'Returned'
+        time: issueTime // Time of issuing/returning
     });
-
-    return true;
 }
+
 
 
 
