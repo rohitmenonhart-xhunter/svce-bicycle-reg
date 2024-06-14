@@ -6,8 +6,7 @@
     <title>Cycle Booking System</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@1.5.2/dist/html5-qrcode.min.js"></script>
 </head>
 <body>
     <div id="landing-page" class="container">
@@ -23,24 +22,32 @@
     </div>
 
     <div id="dashboard" class="container" style="display: none;">
-    <h2>Name: <span id="user-displayName"></span></h2>
-    <p>ID: <span id="user-name"></span></p>
-    <p>Registration Number: <span id="user-register-number"></span></p>
+        <h2>Name: <span id="user-displayName"></span></h2>
+        <p>ID: <span id="user-name"></span></p>
+        <p>Registration Number: <span id="user-register-number"></span></p>
     
-    <div class="dashboard-content">
-        <div id="map" class="map"></div>
-        <button id="qr-scan-btn">QR Code Scanner</button>
-        <div id="qr-camera" class="qr-camera"></div>
-        <div id="qr-result"></div>
+        <div class="dashboard-content">
+            <div id="map" class="map"></div>
+            <button id="qr-scan-btn">QR Code Scanner</button>
+            <div id="qr-camera" class="qr-camera"></div>
+            <div id="qr-result"></div>
+        </div>
     </div>
-</div>
 
-<div id="success-popup" style="display: none;"></div>
+    <!-- Success popup -->
+    <div id="success-popup" class="success-popup" style="display: none;">
+        <div class="popup-content">
+            <span class="close-btn" id="close-popup">&times;</span>
+            <h2>Success!</h2>
+            <div class="tick-mark">✔️</div>
+            <p>Name: <span id="popup-user-name"></span></p>
+            <p>Registration Number: <span id="popup-user-register-number"></span></p>
+            <p>Message: <span id="popup-message"></span></p>
+            <p>Time: <span id="popup-time"></span></p>
+        </div>
+    </div>
 
-<script src="https://apis.google.com/js/api.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-database.js"></script>
