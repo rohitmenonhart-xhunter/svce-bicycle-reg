@@ -15,8 +15,13 @@ const qrCameraDiv = document.getElementById('qr-camera');
 
 const successPopup = document.getElementById('success-popup');
 const closePopup = document.getElementById('close-popup');
+const stopAudioButton = document.getElementById('stop-audio-button');
 
 const errorMessage = document.getElementById('error-message');
+
+let synth;
+let utterance;
+let repeat = 0;
 
 googleSigninButton.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -150,6 +155,7 @@ function displaySuccessMessage(message) {
     document.getElementById('popup-time').textContent = currentTime;
 
     successPopup.style.display = 'block';
+    stopAudioButton.style.display = 'block';
 
     // Play audio message
     const audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
@@ -158,32 +164,33 @@ function displaySuccessMessage(message) {
 
 function playAudioMessage(message, repeatCount) {
     if ('speechSynthesis' in window) {
-        const synth = window.speechSynthesis;
-        const utterance = new SpeechSynthesisUtterance(message);
+        synth = window.speechSynthesis;
+        utterance = new SpeechSynthesisUtterance(message);
         utterance.lang = 'en-US';
 
-        let repeat = 0;
+        repeat = 0;
         utterance.onend = () => {
             repeat += 1;
             if (repeat < repeatCount) {
                 synth.speak(utterance);
+            } else {
+                stopAudioButton.style.display = 'none'; // Hide the button once done
             }
         };
 
-        const playAudio = () => {
-            synth.speak(utterance);
-            document.removeEventListener('click', playAudio);
-        };
-
-        if (synth.speaking) {
-            document.addEventListener('click', playAudio);
-        } else {
-            synth.speak(utterance);
-        }
+        // Start the first utterance
+        synth.speak(utterance);
     } else {
         console.error('Speech Synthesis API is not supported in this browser.');
     }
 }
+
+stopAudioButton.addEventListener('click', () => {
+    if (synth) {
+        synth.cancel();
+        stopAudioButton.style.display = 'none'; // Hide the button after stopping audio
+    }
+});
 
 closePopup.addEventListener('click', () => {
     successPopup.style.display = 'none';

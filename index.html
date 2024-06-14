@@ -35,15 +35,15 @@
     </div>
 
     <!-- Success popup -->
-    <div id="success-popup" class="success-popup" style="display: none;">
+    <div id="success-popup" class="popup" style="display: none;">
         <div class="popup-content">
-            <span class="close-btn" id="close-popup">&times;</span>
-            <h2>Success!</h2>
-            <div class="tick-mark">✔️</div>
-            <p>ID: <span id="popup-user-name"></span></p>
+            <span id="close-popup" class="close-popup">&times;</span>
+            <h3>Success</h3>
+            <p>Name: <span id="popup-user-name"></span></p>
             <p>Registration Number: <span id="popup-user-register-number"></span></p>
-            <p>Status: <span id="popup-message"></span></p>
+            <p>Message: <span id="popup-message"></span></p>
             <p>Time: <span id="popup-time"></span></p>
+            <button id="stop-audio-button" style="display: none;">Stop Audio</button>
         </div>
     </div>
 
