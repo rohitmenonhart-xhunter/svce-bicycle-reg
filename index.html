@@ -6,6 +6,8 @@
     <title>Cycle Booking System</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@1.5.2/dist/html5-qrcode.min.js"></script>
+
 </head>
 <body>
     <div id="landing-page" class="container">
@@ -27,9 +29,13 @@
     
     <div class="dashboard-content">
         <div id="map" class="map"></div>
+        <button id="qr-scan-btn">QR Code Scanner</button>
+        <div id="qr-camera" class="qr-camera"></div>
+        <div id="qr-result"></div>
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.1.0/firebase-auth.js"></script>
