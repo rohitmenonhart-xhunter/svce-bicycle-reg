@@ -238,6 +238,8 @@ getPassButton.addEventListener('click', async () => {
 function displaySuccessMessage(message, status) {
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
+    const userDisplayName = localStorage.getItem('userDisplayName');
+
     const currentTime = new Date().toLocaleString();
 
     document.getElementById('popup-user-name').textContent = userEmail.split('@')[0];
