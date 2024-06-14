@@ -29,10 +29,10 @@ let userMarker;
 let route;
 let markers = [];
 const customMarkers = [
-    { lat: 13.111996 , lng: 80.106127, title: 'Marker 1', icon: 'stands.png' },
-    { lat: 13.108688, lng: 80.097302, title: 'Marker 2', icon: 'stands.png' },
-    { lat: 12.987, lng: 79.973, title: 'Marker 3', icon: 'stands.png' },
-    { lat: 12.984, lng: 79.974, title: 'Marker 4', icon: 'stands.png' }
+    { lat: 12.986, lng: 79.971, title: 'Marker 1' },
+    { lat: 12.985, lng: 79.972, title: 'Marker 2' },
+    { lat: 12.987, lng: 79.973, title: 'Marker 3' },
+    { lat: 12.984, lng: 79.974, title: 'Marker 4' }
 ];
 
 googleSigninButton.addEventListener('click', () => {
@@ -86,14 +86,7 @@ function displayDashboard() {
 
     // Add custom markers to the map
     customMarkers.forEach(marker => {
-        const customIcon = L.icon({
-            iconUrl: marker.icon,
-            iconSize: [38, 38],
-            iconAnchor: [19, 38],
-            popupAnchor: [0, -38]
-        });
-
-        const customMarker = L.marker([marker.lat, marker.lng], { icon: customIcon })
+        const customMarker = L.marker([marker.lat, marker.lng])
             .addTo(map)
             .bindPopup(marker.title);
         markers.push(customMarker);
@@ -161,7 +154,7 @@ qrScanButton.addEventListener('click', async () => {
     // Show the "Get the Pass" button
     getPassButton.style.display = 'block';
 
-    const html5QrCode = new Html5QrCode('qr-camera');
+    const html5QrCode = new Html5Qrcode('qr-camera');
 
     try {
         await html5QrCode.start(
