@@ -151,37 +151,6 @@ qrScanButton.addEventListener('click', async () => {
     }
 });
 
-// Load the Google API client library
-gapiInit();
-
-function gapiInit() {
-    gapi.load('client:auth2', () => {
-        gapi.client.init({
-            apiKey: 'AIzaSyCKuoLKspUfEKdkexgO7HD9yb0C32lFI9I',
-            clientId: '415169225788-1uouacid37uceg50k84kf7i6engjoe6p.apps.googleusercontent.com',
-            discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-            scope: "https://www.googleapis.com/auth/spreadsheets"
-        }).then(() => {
-            console.log('GAPI client initialized.');
-        });
-    });
-}
-
-function appendRowToSheet(values) {
-    gapi.client.sheets.spreadsheets.values.append({
-        spreadsheetId: '1LmqPOa0S0KW3AbKGDYuh39syfdH9AY5cph6PzjHCXs8',
-        range: 'Sheet1!A1', // Change to your desired range
-        valueInputOption: 'RAW',
-        insertDataOption: 'INSERT_ROWS',
-        resource: {
-            values: [values]
-        }
-    }).then(response => {
-        console.log('Row added to Google Sheets:', response);
-    }, error => {
-        console.error('Error adding row to Google Sheets:', error);
-    });
-}
 async function issueBicycle() {
     console.log('Issuing bicycle');
     // Get user details from local storage
@@ -189,19 +158,14 @@ async function issueBicycle() {
     const registerNumber = localStorage.getItem('registerNumber');
     const userName = userEmail.split('@')[0];
     const userDisplayName = localStorage.getItem('userDisplayName');
-    const issueTime = new Date().toISOString();
     
     // Update RTDB with user details and bicycle issued info
     await database.ref('rides/' + userName).set({
         displayName: userDisplayName,
         email: userEmail,
         registerNumber: registerNumber,
-        bicycle: 'bicycle2', // Assuming bicycle2 is issued
-        issueTime: issueTime // Issue time
+        bicycle: 'bicycle2' // Assuming bicycle2 is issued
     });
-
-    // Update Google Sheets with the same details
-    appendRowToSheet([userName, userDisplayName, registerNumber, 'bicycle2', issueTime, 'Issued']);
 }
 
 function displaySuccessMessage(message) {
@@ -209,8 +173,6 @@ function displaySuccessMessage(message) {
     successPopup.textContent = message;
     successPopup.style.display = 'block';
 }
-
-
 
 window.onload = () => {
     if (localStorage.getItem('userEmail') && localStorage.getItem('registerNumber')) {
