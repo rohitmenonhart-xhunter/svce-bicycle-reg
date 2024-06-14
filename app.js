@@ -122,10 +122,28 @@ qrScanButton.addEventListener('click', async () => {
                 fps: 10,    // Optional. Default is 10.
                 qrbox: 250  // Optional. Default is 250px.
             },
-            qrCodeMessage => {
+            async qrCodeMessage => {
                 // Callback when QR code is detected
                 qrResultDiv.innerHTML = `<p>QR Code detected: ${qrCodeMessage}</p>`;
-                html5QrCode.stop(); // Stop scanning
+                
+                // Check if QR code message is "bicycle2"
+                if (qrCodeMessage.trim() === "bicycle2") {
+                    if (!startTime) {
+                        // First scan - issue bicycle
+                        startTime = new Date().toISOString();
+                        await issueBicycle();
+                    } else {
+                        // Second scan - return bicycle
+                        endTime = new Date().toISOString();
+                        await returnBicycle();
+                    }
+                } else {
+                    // Reset start time if QR code is not "bicycle2"
+                    startTime = null;
+                }
+                
+                // Stop scanning after detecting the QR code
+                html5QrCode.stop();
             },
             errorMessage => {
                 // Callback when error occurs
@@ -138,6 +156,66 @@ qrScanButton.addEventListener('click', async () => {
         qrResultDiv.innerHTML = `<p>Error: ${err.message}</p>`;
     }
 });
+
+async function issueBicycle() {
+    // Get user details from local storage
+    const userEmail = localStorage.getItem('userEmail');
+    const registerNumber = localStorage.getItem('registerNumber');
+    const userName = userEmail.split('@')[0];
+    const userDisplayName = localStorage.getItem('userDisplayName');
+    
+    // Update RTDB with user details and bicycle issued info
+    await database.ref('rides/' + userName).set({
+        displayName: userDisplayName,
+        email: userEmail,
+        registerNumber: registerNumber,
+        bicycle: 'bicycle2', // Assuming bicycle2 is issued
+        startTime: startTime // Start time
+    });
+    
+    // Display success message for bicycle issued
+    displaySuccessMessage(userDisplayName, registerNumber, startTime, 'Bicycle Issued');
+}
+
+async function returnBicycle() {
+    // Get user details from local storage
+    const userEmail = localStorage.getItem('userEmail');
+    const userName = userEmail.split('@')[0];
+    
+    // Update RTDB with return time and mark ride as completed
+    await database.ref('rides/' + userName).update({
+        endTime: endTime, // End time
+        completed: true // Mark ride as completed
+    });
+    
+    // Display success message for bicycle returned
+    displaySuccessMessage('', '', endTime, 'Bicycle Returned', true); // Empty details for return
+}
+
+function displaySuccessMessage(name, regNumber, time, msg, isReturn = false) {
+    const successCanvas = document.getElementById('success-canvas');
+    const bgColor = isReturn ? '#4CAF50' : '#f44336'; // Green for return, Red for issue
+    const buttonText = isReturn ? 'Close' : 'OK';
+
+    successCanvas.style.display = 'block';
+    successCanvas.style.backgroundColor = bgColor;
+    successCanvas.innerHTML = `
+        <div class="success-message">
+            <span class="close-btn" onclick="closeSuccessMessage()">×</span>
+            <h3>${msg}</h3>
+            <p>Name: ${name}</p>
+            <p>Registration Number: ${regNumber}</p>
+            <p>Time: ${time}</p>
+            <button id="close-success">${buttonText}</button>
+        </div>
+    `;
+}
+
+function closeSuccessMessage() {
+    const successCanvas = document.getElementById('success-canvas');
+    successCanvas.style.display = 'none';
+}
+
 
 window.onload = () => {
     if (localStorage.getItem('userEmail') && localStorage.getItem('registerNumber')) {
