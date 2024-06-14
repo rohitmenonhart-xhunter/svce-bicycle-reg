@@ -12,6 +12,7 @@ const userDisplayNameSpan = document.getElementById('user-displayName');
 const qrScanButton = document.getElementById('qr-scan-btn');
 const qrResultDiv = document.getElementById('qr-result');
 const qrCameraDiv = document.getElementById('qr-camera');
+const getPassButton = document.getElementById('get-pass-button');
 
 const successPopup = document.getElementById('success-popup');
 const closePopup = document.getElementById('close-popup');
@@ -22,6 +23,7 @@ const errorMessage = document.getElementById('error-message');
 let synth;
 let utterance;
 let repeat = 0;
+let scannedQrCode = "";
 
 googleSigninButton.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -85,10 +87,9 @@ function saveUserInfoToFirebase(registerNumber) {
     });
 }
 
-// Add event listener for QR scan button
 qrScanButton.addEventListener('click', async () => {
     // Show the "Get the Pass" button
-    document.getElementById('get-pass-button').style.display = 'block';
+    getPassButton.style.display = 'block';
 
     const html5QrCode = new Html5Qrcode('qr-camera');
 
@@ -99,32 +100,9 @@ qrScanButton.addEventListener('click', async () => {
                 fps: 10,    // Optional. Default is 10.
                 qrbox: 250  // Optional. Default is 250px.
             },
-            async qrCodeMessage => {
+            qrCodeMessage => {
                 console.log('QR Code detected:', qrCodeMessage.trim());
-
-                // Get user details
-                const userEmail = localStorage.getItem('userEmail');
-                const registerNumber = localStorage.getItem('registerNumber');
-                const userName = userEmail.split('@')[0];
-                const userDisplayName = localStorage.getItem('userDisplayName');
-                const currentTime = new Date().toLocaleString();
-
-                // Check QR code message
-                if (qrCodeMessage.trim() === "bicycle2") {
-                    console.log('Bicycle detected');
-                    // Trigger the function for issuing bicycle
-                    await issueBicycle(userName, userDisplayName, userEmail, registerNumber, currentTime);
-                    // Display success message
-                    displaySuccessMessage("Bicycle Issued");
-                } else if (qrCodeMessage.trim() === "bicycle2out") {
-                    console.log('Bicycle returned');
-                    // Trigger the function for returning bicycle
-                    await returnBicycle(userName, userDisplayName, userEmail, registerNumber, currentTime);
-                    // Display success message
-                    displaySuccessMessage("Bicycle Returned");
-                } else {
-                    console.log('Invalid QR code');
-                }
+                scannedQrCode = qrCodeMessage.trim();
 
                 // Stop scanning after detecting the QR code
                 html5QrCode.stop();
@@ -141,58 +119,39 @@ qrScanButton.addEventListener('click', async () => {
     }
 });
 
-// Add event listener for "Get the Pass" button
-document.getElementById('get-pass-button').addEventListener('click', async () => {
-    const userEmail = localStorage.getItem('userEmail');
-    const registerNumber = localStorage.getItem('registerNumber');
-    const userName = userEmail.split('@')[0];
-    const userDisplayName = localStorage.getItem('userDisplayName');
-    const currentTime = new Date().toLocaleString();
+getPassButton.addEventListener('click', async () => {
+    const bicycleMatch = scannedQrCode.match(/bicycle(\d+)(out)?/);
+    if (bicycleMatch) {
+        const bicycleNumber = bicycleMatch[1];
+        const isReturning = Boolean(bicycleMatch[2]);
+        const userEmail = localStorage.getItem('userEmail');
+        const registerNumber = localStorage.getItem('registerNumber');
+        const userName = userEmail.split('@')[0];
+        const userDisplayName = localStorage.getItem('userDisplayName');
+        const currentTime = new Date().toLocaleString();
+        const status = isReturning ? "returned" : "issued";
 
-    // Push user details and pass info as a new entry under 'passes'
-    await database.ref('passes/' + userName).push({
-        displayName: userDisplayName,
-        email: userEmail,
-        registerNumber: registerNumber,
-        time: currentTime // Time of getting the pass
-    });
+        // Push user details and pass info as a new entry under 'passes'
+        await database.ref('passes/' + userName).push({
+            displayName: userDisplayName,
+            email: userEmail,
+            registerNumber: registerNumber,
+            bicycle: `bicycle${bicycleNumber}`,
+            time: currentTime, // Time of getting the pass
+            status: status // Issue or return status
+        });
 
-    // Display success message
-    displaySuccessMessage("Pass Received");
+        // Display success message
+        displaySuccessMessage(`Bicycle ${bicycleNumber} ${status.charAt(0).toUpperCase() + status.slice(1)}`);
 
-    // Hide the "Get the Pass" button
-    document.getElementById('get-pass-button').style.display = 'none';
+        // Hide the "Get the Pass" button
+        getPassButton.style.display = 'none';
+        scannedQrCode = ""; // Reset scanned QR code
+    } else {
+        displaySuccessMessage("Invalid QR Code");
+    }
 });
 
-// Function to issue bicycle
-async function issueBicycle(userName, userDisplayName, userEmail, registerNumber, currentTime) {
-    console.log('Issuing bicycle');
-
-    // Push user details and bicycle issued info as a new entry under 'rides'
-    await database.ref('rides/' + userName).push({
-        displayName: userDisplayName,
-        email: userEmail,
-        registerNumber: registerNumber,
-        bicycle: 'bicycle2', // Assuming bicycle2 is issued
-        issueTime: currentTime // Issue time
-    });
-}
-
-// Function to return bicycle
-async function returnBicycle(userName, userDisplayName, userEmail, registerNumber, currentTime) {
-    console.log('Returning bicycle');
-
-    // Push user details and bicycle returned info as a new entry under 'rides'
-    await database.ref('rides/' + userName).push({
-        displayName: userDisplayName,
-        email: userEmail,
-        registerNumber: registerNumber,
-        bicycle: 'bicycle2out', // Indicate that bicycle is returned
-        returnTime: currentTime // Return time
-    });
-}
-
-// Modify displaySuccessMessage function to handle different messages
 function displaySuccessMessage(message) {
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
@@ -210,7 +169,6 @@ function displaySuccessMessage(message) {
     const audioMessage = `${message} at ${currentTime}`;
     playAudioMessage(audioMessage, 1); // Play once
 }
-
 
 function playAudioMessage(message, repeatCount) {
     if ('speechSynthesis' in window) {
