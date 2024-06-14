@@ -12,16 +12,10 @@ const userDisplayNameSpan = document.getElementById('user-displayName');
 const qrScanButton = document.getElementById('qr-scan-btn');
 const qrResultDiv = document.getElementById('qr-result');
 const qrCameraDiv = document.getElementById('qr-camera');
-
 const successPopup = document.getElementById('success-popup');
-const closePopup = document.getElementById('close-popup');
-const stopAudioButton = document.getElementById('stop-audio-button');
+const stopAudioButton = document.getElementById('stop-audio');
 
 const errorMessage = document.getElementById('error-message');
-
-let synth;
-let utterance;
-let repeat = 0;
 
 googleSigninButton.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -65,8 +59,7 @@ function displayDashboard() {
     registerNumberPage.style.display = 'none';
     dashboard.style.display = 'block';
 
-    // Initialize Leaflet map
-    const map = L.map('map').setView([12.986123, 79.972028], 17);
+    const map = L.map('map').setView([12.986123, 79.972028], 17); // Centered on Chennai, adjust as needed
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -90,30 +83,24 @@ qrScanButton.addEventListener('click', async () => {
 
     try {
         await html5QrCode.start(
-            { facingMode: 'environment' }, // Use rear camera by default
+            { facingMode: 'environment' },
             {
-                fps: 10,    // Optional. Default is 10.
-                qrbox: 250  // Optional. Default is 250px.
+                fps: 10,
+                qrbox: 250
             },
             async qrCodeMessage => {
                 console.log('QR Code detected:', qrCodeMessage.trim());
 
-                // Check if QR code message is "bicycle2"
                 if (qrCodeMessage.trim() === "bicycle2") {
                     console.log('Bicycle detected');
-                    // Trigger the function for issuing bicycle
-                    await issueBicycle();
-                    // Display success message
-                    displaySuccessMessage("Bicycle Issued");
+                    await handleBicycleTransaction();
                 } else {
                     console.log('Not bicycle2');
                 }
 
-                // Stop scanning after detecting the QR code
                 html5QrCode.stop();
             },
             errorMessage => {
-                // Callback when error occurs
                 console.error(errorMessage);
                 qrResultDiv.innerHTML = `<p>Error: ${errorMessage}</p>`;
             }
@@ -124,23 +111,33 @@ qrScanButton.addEventListener('click', async () => {
     }
 });
 
-async function issueBicycle() {
-    console.log('Issuing bicycle');
-    // Get user details from local storage
+async function handleBicycleTransaction() {
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
     const userName = userEmail.split('@')[0];
     const userDisplayName = localStorage.getItem('userDisplayName');
-    const issueTime = new Date().toLocaleString();
 
-    // Update RTDB with user details and bicycle issued info
-    await database.ref('rides/' + userName).set({
-        displayName: userDisplayName,
-        email: userEmail,
-        registerNumber: registerNumber,
-        bicycle: 'bicycle2', // Assuming bicycle2 is issued
-        issueTime: issueTime // Issue time
-    });
+    const ridesRef = database.ref('rides/' + userName);
+    const rideSnapshot = await ridesRef.once('value');
+    const rideData = rideSnapshot.val();
+
+    const currentTime = Date.now();
+    const lastScanTime = rideData ? rideData.lastScanTime : 0;
+    const timeElapsed = (currentTime - lastScanTime) / 1000;
+
+    if (timeElapsed >= 40) {
+        await ridesRef.remove();
+        displayReturnMessage();
+    } else {
+        await ridesRef.set({
+            displayName: userDisplayName,
+            email: userEmail,
+            registerNumber: registerNumber,
+            bicycle: 'bicycle2',
+            lastScanTime: currentTime
+        });
+        displaySuccessMessage("Bicycle Issued");
+    }
 }
 
 function displaySuccessMessage(message) {
@@ -149,7 +146,7 @@ function displaySuccessMessage(message) {
     const registerNumber = localStorage.getItem('registerNumber');
     const currentTime = new Date().toLocaleString();
 
-    document.getElementById('popup-user-name').textContent = userEmail.split('@')[0];
+    document.getElementById('popup-user-name').textContent = userDisplayName;
     document.getElementById('popup-user-register-number').textContent = registerNumber;
     document.getElementById('popup-message').textContent = message;
     document.getElementById('popup-time').textContent = currentTime;
@@ -157,43 +154,43 @@ function displaySuccessMessage(message) {
     successPopup.style.display = 'block';
     stopAudioButton.style.display = 'block';
 
-    // Play audio message
     const audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
-    playAudioMessage(audioMessage, 2); // Repeat twice
+    playAudioMessage(audioMessage, 2);
 }
 
-function playAudioMessage(message, repeatCount) {
-    if ('speechSynthesis' in window) {
-        synth = window.speechSynthesis;
-        utterance = new SpeechSynthesisUtterance(message);
-        utterance.lang = 'en-US';
+function displayReturnMessage() {
+    const userEmail = localStorage.getItem('userEmail');
+    const userDisplayName = localStorage.getItem('userDisplayName');
+    const registerNumber = localStorage.getItem('registerNumber');
+    const currentTime = new Date().toLocaleString();
 
-        repeat = 0;
-        utterance.onend = () => {
-            repeat += 1;
-            if (repeat < repeatCount) {
-                synth.speak(utterance);
-            } else {
-                stopAudioButton.style.display = 'none'; // Hide the button once done
-            }
-        };
+    document.getElementById('popup-user-name').textContent = userDisplayName;
+    document.getElementById('popup-user-register-number').textContent = registerNumber;
+    document.getElementById('popup-message').textContent = "Bicycle Returned";
+    document.getElementById('popup-time').textContent = currentTime;
 
-        // Start the first utterance
-        synth.speak(utterance);
-    } else {
-        console.error('Speech Synthesis API is not supported in this browser.');
-    }
+    successPopup.style.display = 'block';
+    stopAudioButton.style.display = 'block';
+
+    const audioMessage = `Bicycle returned by ${userDisplayName} on ${currentTime}`;
+    playAudioMessage(audioMessage, 2);
+}
+
+function playAudioMessage(message, repeat) {
+    const msg = new SpeechSynthesisUtterance(message);
+    window.speechSynthesis.speak(msg);
+
+    msg.onend = () => {
+        if (repeat > 1) {
+            playAudioMessage(message, repeat - 1);
+        }
+    };
 }
 
 stopAudioButton.addEventListener('click', () => {
-    if (synth) {
-        synth.cancel();
-        stopAudioButton.style.display = 'none'; // Hide the button after stopping audio
-    }
-});
-
-closePopup.addEventListener('click', () => {
+    window.speechSynthesis.cancel();
     successPopup.style.display = 'none';
+    stopAudioButton.style.display = 'none';
 });
 
 window.onload = () => {
