@@ -104,7 +104,7 @@ qrScanButton.addEventListener('click', async () => {
                     // Trigger the function for issuing bicycle
                     await issueBicycle();
                     // Display success message
-                    displaySuccessMessage("Bicycle Issued");
+                    // displaySuccessMessage("Bicycle Issued");
                 } else {
                     console.log('Not bicycle2');
                 }
