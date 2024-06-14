@@ -101,8 +101,10 @@ qrScanButton.addEventListener('click', async () => {
                 // Check if QR code message is "bicycle2"
                 if (qrCodeMessage.trim() === "bicycle2") {
                     console.log('Bicycle detected');
-                    // Trigger the function for issuing/returning bicycle
-                    await handleBicycleQR();
+                    // Trigger the function for issuing bicycle
+                    await issueBicycle();
+                    // Display success message
+                    displaySuccessMessage("Bicycle Issued");
                 } else {
                     console.log('Not bicycle2');
                 }
@@ -122,27 +124,9 @@ qrScanButton.addEventListener('click', async () => {
     }
 });
 
-async function handleBicycleQR() {
-    const userEmail = localStorage.getItem('userEmail');
-    const userName = userEmail.split('@')[0];
-
-    // Check if the user has already issued a bicycle
-    const rideData = await database.ref('rides/' + userName).once('value');
-    const rideValue = rideData.val();
-
-    if (rideValue && rideValue.bicycle) {
-        // User has already issued a bicycle
-        await returnBicycle();
-        displaySuccessMessage("Bicycle Returned");
-    } else {
-        // User hasn't issued a bicycle yet
-        await issueBicycle();
-        displaySuccessMessage("Bicycle Issued");
-    }
-}
-
 async function issueBicycle() {
     console.log('Issuing bicycle');
+    // Get user details from local storage
     const userEmail = localStorage.getItem('userEmail');
     const registerNumber = localStorage.getItem('registerNumber');
     const userName = userEmail.split('@')[0];
@@ -156,19 +140,6 @@ async function issueBicycle() {
         registerNumber: registerNumber,
         bicycle: 'bicycle2', // Assuming bicycle2 is issued
         issueTime: issueTime // Issue time
-    });
-}
-
-async function returnBicycle() {
-    console.log('Returning bicycle');
-    const userEmail = localStorage.getItem('userEmail');
-    const userName = userEmail.split('@')[0];
-    const returnTime = new Date().toLocaleString();
-
-    // Update RTDB with user details and bicycle returned info
-    await database.ref('rides/' + userName).update({
-        bicycle: null, // Set bicycle to null to indicate return
-        returnTime: returnTime // Return time
     });
 }
 
@@ -186,15 +157,10 @@ function displaySuccessMessage(message) {
     successPopup.style.display = 'block';
     stopAudioButton.style.display = 'block';
 
-    let audioMessage;
-    if (message === "Bicycle Issued") {
-        audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
-    } else if (message === "Bicycle Returned") {
-        audioMessage = `Bicycle returned by ${userDisplayName} on ${currentTime}`;
-    }
+    // Play audio message
+    const audioMessage = `Bicycle issued to ${userDisplayName} on ${currentTime}`;
     playAudioMessage(audioMessage, 2); // Repeat twice
 }
-
 
 function playAudioMessage(message, repeatCount) {
     if ('speechSynthesis' in window) {
